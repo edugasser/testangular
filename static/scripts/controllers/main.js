@@ -34,7 +34,8 @@ app.controller("MainCtrl", function($scope, Post) {
     Post.delete({id:post.id},
       function(data){ 
           //do something with data here 
-         $scope.posts.splice(data, 1);
+         idx = $scope.posts.indexOf(post)
+         $scope.posts.splice(idx, 1);
         }
         ); 
  }
@@ -65,7 +66,7 @@ $scope.save = function(post) {
           function(data){ 
             $scope.posts.push(post);
           })
-      .catch(function(req) { console.log(req); }); 
+      .catch(function(req) { $scope.errors=req.data }); 
     }
     $scope.editing = false;
     $scope.post = new Post();

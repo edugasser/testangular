@@ -28,9 +28,12 @@
         <tbody>
         {% verbatim %}  	
         <tr ng-repeat="post in posts">
-          <td ng-click="activePost(post)">{{post.nombre}}</td>
-         
+           <td ng-click="activePost(post)">{{post.nombre}}</td>
+           <td>{{post.apellido}}</td>
           <td><button class="btn btn-danger" ng-click="delete(post)">Delete</button></td>
+        </tr>
+        <tr ng-repeat="(key, value) in errors">
+          <td> {{key}} </td> <td> {{ value[0] }} </td>
         </tr>
         {% endverbatim %}
 
@@ -40,8 +43,8 @@
       <h3 ng-if="!editing">New Post</h3>
       <h3 ng-if="editing">Edit Post</h3>
       <form ng-submit="save(post)">
-        <input ng-model="post.nombre">
-        <input ng-model="post.apellido">
+        <input ng-model="post.nombre" >
+        <input ng-model="post.apellido" >
         <button type="submit" class="btn btn-primary">Submit</button>
       </form>
         <button ng-if="editing" class="btn btn-success" ng-click="newPost()">New Post</button>
