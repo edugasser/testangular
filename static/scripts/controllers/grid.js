@@ -1,29 +1,46 @@
 // main.js
-var app = angular.module('myApp', ['ngGrid','ngRoute','ngResource','ui.bootstrap']);
+var app = angular.module('myApp', ['ngGrid','ngRoute','ui.bootstrap']);
 
 
-app.factory("Post", function($resource) {
-  return $resource("/autores/:id", {callback:'JSON_CALLBACK'}, {
-    query: { method: "GET", isArray: false },
-    
-    create: { method: 'POST' },
-    update: { method: 'PUT', params: {id: '@id'} },
-    delete: { method: 'DELETE', params: {id: '@id'} }
+app.factory('Autor', function($http) {
+
+    return {
+      // get all the comments
+      get : function(page) {
+        return $http.get('/autores',{params: {page:page}});
+      },
+
+      // save a comment (pass in comment data)
+      save : function(commentData) {
+        return $http({
+          method: 'POST',
+          url: '/api/comments',
+          headers: { 'Content-Type' : 'application/x-www-form-urlencoded' },
+          data: $.param(commentData)
+        });
+      },
+
+      // destroy a comment
+      destroy : function(id) {
+        return $http.delete('/api/comments/' + id);
+      }
+    }
   });
-});
 
 
-app.controller('MyCtrl', function($scope,Post) {
 
-  Post.query({page:1},function(careerList, getResponseHeaders){
-      console.log(getResponseHeaders);
-    });
+app.controller('MyCtrl', function($scope,$http,Autor) {
 
+
+  Autor.get()
+  .success(function(data) {
+        $scope.myData = data.results;
+      });
 
   $scope.gridOptions = { data: 'myData' };
 
   /* Pagination */
-  $scope.noOfPages = 20;
+  $scope.noOfPages = 3;
   $scope.currentPage = 4;
   $scope.maxSize = 5;
   $scope.setPage = function (pageNo) {

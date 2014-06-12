@@ -16,9 +16,9 @@ class LibroViewSet(viewsets.ModelViewSet):
 class AutorViewSet(viewsets.ModelViewSet):
     queryset = Autor.objects.all()
     serializer_class = AutorSerializer
-    paginate_by = 10
+    paginate_by = 3
     paginate_by_param = 'page'
-    max_paginate_by = 100
+    max_paginate_by = 3
 
 
 '''
