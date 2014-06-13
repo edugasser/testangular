@@ -34,10 +34,14 @@
     <body ng-controller="MyCtrl">
         <div class="gridStyle" ng-grid="gridOptions">
         </div>
+
+
+
         <div>
           {% verbatim %}    
-            <pagination num-pages="noOfPages" current-page="currentPage" max-size="maxSize"></pagination>
-            The selected page no: {{currentPage}}
+            <pagination num-pages="noOfPages" current-page="currentPage"  on-select-page="pageChanged(page)" max-size="maxSize"></pagination>
+            The selected page no: {{currentPage}}<br>
+            {{headers}}
          {% endverbatim %}
         </div>
     </body>

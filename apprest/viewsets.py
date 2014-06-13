@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from django.db import connection
 from django.core.paginator import Paginator
 from rest_framework.pagination import PaginationSerializer
+from django.template import RequestContext
 itemsPerPage=3
 
 class LibroViewSet(viewsets.ModelViewSet):
@@ -16,9 +17,8 @@ class LibroViewSet(viewsets.ModelViewSet):
 class AutorViewSet(viewsets.ModelViewSet):
     queryset = Autor.objects.all()
     serializer_class = AutorSerializer
-    paginate_by = 3
-    paginate_by_param = 'page'
-    max_paginate_by = 3
+    pru='a'
+
 
 
 '''
