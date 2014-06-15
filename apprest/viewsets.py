@@ -3,10 +3,10 @@ from .serializers import LibroSerializer, AutorSerializer
 from rest_framework import viewsets
 from rest_framework.response import Response
 from django.db import connection
-from django.core.paginator import Paginator
-from rest_framework.pagination import PaginationSerializer
+
+#from rest_framework.pagination import PaginationSerializer
 from django.template import RequestContext
-itemsPerPage=3
+
 
 class LibroViewSet(viewsets.ModelViewSet):
 	
@@ -15,12 +15,26 @@ class LibroViewSet(viewsets.ModelViewSet):
 
 
 class AutorViewSet(viewsets.ModelViewSet):
-    queryset = Autor.objects.all()
-    serializer_class = AutorSerializer
-    pru='a'
+	serializer_class = AutorSerializer
+	queryset = Autor.objects.all()
 
 
+'''
+# FUNCIONA EN GRID.JS
+class AutorViewSet(viewsets.ModelViewSet):
+	serializer_class = AutorSerializer
+	model = Autor
+	def get_queryset(self):
+		"""
+		This view should return a list of all the purchases for
+		the user as determined by the username portion of the URL.
+		"""
+		par=self.request.QUERY_PARAMS
+		print par
+		queryset = Autor.objects.all()
 
+		return queryset
+'''
 '''
 class AutorViewSet(viewsets.ModelViewSet):
 	serializer_class = AutorSerializer

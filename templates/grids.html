@@ -12,7 +12,7 @@
         <script type="text/javascript" src="static/ng-grid/ng-grid-2.0.11.min.js"></script>
 
 
-        <script type="text/javascript" src="static/scripts/controllers/grid.js"></script>
+        <script type="text/javascript" src="static/scripts/controllers/grids.js"></script>
 
          <!-- Latest compiled and minified JavaScript -->
 
@@ -28,6 +28,7 @@
             width: 400px; 
             height: 300px;
         }
+        .nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
         </style>
 
     </head>
@@ -39,14 +40,21 @@
 
         <div>
           {% verbatim %}    
-            <pagination num-pages="noOfPages" current-page="currentPage"  on-select-page="pageChanged(page)" max-size="maxSize"></pagination>
+          
+
+     
+ <div data-pagination="" data-page="currentPage" data-on-select-page="setPage(page)" data-boundary-links="true" data-total-items="filteredItems" items-per-page="entryLimit" class="pagination-small" data-previous-text="&laquo;" data-next-text="&raquo;"></div>
+ 
+ </div>
+
+
+
+
             The selected page no: {{currentPage}}<br>
-            {{headers}}
-            <br>
-            {{ search}}
-            <br>
-            {{columna}}
+               {{count}}<br>
+               {{myData}}
          {% endverbatim %}
+
         </div>
     </body>
 </html>
