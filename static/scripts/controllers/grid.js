@@ -1,7 +1,6 @@
 // main.js
 var app = angular.module('myApp', ['ngGrid','ngRoute','ui.bootstrap']);
 
-
 app.factory('Autor', function($http) {
 
     return {
@@ -12,7 +11,7 @@ app.factory('Autor', function($http) {
 
       // query all the comments
       query : function(texto) {
-        return $http.get('/autores',{params: {query:texto}});
+        return $http.get('/autores?'+texto);
       },
 
       // save a comment (pass in comment data)
@@ -36,77 +35,106 @@ app.factory('Autor', function($http) {
 
 app.controller('MyCtrl', function($scope,$http,Autor) {
 
+  function Tratar_Grid(data){
+      $scope.myData = data.results;
 
-  //$scope.search = {id:'', nombre:'', apellido:''};
+      // Preparamos la paginacion
+      if ($scope.noOfPages==null){
+        var page_size = data.results.length;
+        $scope.noOfPages =  (data.count%page_size != 0) ? parseInt((data.count/page_size))+1 : (data.count/page_size);
+      }
 
+      // Preparamos los headers
+      if ($scope.headers==null){
+         $scope.headers=[]
+         $scope.search={}
+         for (var key in data.results){
+            for (var columna in data.results[key]){
+              $scope.search[columna]=''
+              $scope.headers.push({field: columna, displayName: columna.toUpperCase(), headerCellTemplate: 'static/scripts/controllers/filterHeaderTemplate.html'});
+              
+            }
+            break;
+         }
+       } // End headers
+    }
 
-   var myHeaderCellTemplate = '<div class="ngHeaderSortColumn {{col.headerClass}}" ng-style="{cursor: col.cursor}" ng-class="{ ngSorted: !noSortVisible }">'+
-        '<div ng-click="col.sort($event)" ng-class="\'colt\' + col.index" class="ngHeaderText">{{col.displayName}}  {{search[col.field]}} </div>'+
-        '<div class="ngSortButtonDown" ng-show="col.showSortButtonDown()"></div>'+
-        '<div class="ngSortButtonUp" ng-show="col.showSortButtonUp()"></div>'+
-        '<div class="ngSortPriority">{{col.sortPriority}}</div>'+
-        '<input type="text"  ng-model="search[col.field]"/>'+
-        '</div>'+
-    '<div ng-show="col.resizable" class="ngHeaderGrip" ng-click="col.gripClick($event)" ng-mousedown="col.gripOnMouseDown($event)"></div>';
-
+  var filterBarPlugin = {
+      init: function(scope, grid) {
+          filterBarPlugin.scope = scope;
+          filterBarPlugin.grid = grid;
+          $scope.$watch(function() {
+              var searchQuery = '';
+              var vacio = true;
+              angular.forEach(filterBarPlugin.scope.columns, function(col) {
+                  if (col.visible && col.filterText) {
+                      var filterText = col.filterText.trim();
+                      if (filterText.length % 3 === 0){
+                        searchQuery+=col.field + "__contains=" + filterText+ "&";
+                      }  
+                      vacio = false;        
+                  }
+              }
+              );
+              /* si han vaciado el campo,hacemos otra llamada*/
+              if (vacio){
+                searchQuery= ' ';
+              }
+             return searchQuery;
+          }, function(searchQuery,vacio) {
+              /* si hay datos que buscar */
+              if (searchQuery){
+                $scope.queryData(searchQuery);
+              }
+          });
+      },
+      scope: undefined,
+      grid: undefined,
+  };
 
   $scope.loadData = function (page) {
      Autor.get(page)
-    .success(function(data) {
-          $scope.myData = data.results;
-
-          // Preparamos la paginacion
-          if ($scope.noOfPages==null){
-            var page_size = data.results.length;
-            $scope.noOfPages =  (data.count%page_size != 0) ? parseInt((data.count/page_size))+1 : (data.count/page_size);
-          }
-
-          // Preparamos los headers
-          if ($scope.headers==null){
-             $scope.headers=[]
-             $scope.search={}
-             for ( var key in data.results){
-                for (var columna in data.results[key]){
-                  $scope.search[columna]=''
-                  $scope.headers.push({field: columna, displayName: columna.toUpperCase(), headerCellTemplate: myHeaderCellTemplate, colFilterText: ''});
-                  
-                }
-                break;
-             }
-           }
-          
-        });
-
-    $scope.gridOptions = { 
-      data: 'myData',  
-      columnDefs:'headers',
-      enableRowSelection: false,
-      enableSorting: true,
-      enablePaging: true,
-      rowHeight: 36,
-      headerRowHeight: 60,
-
-    };
+      .success(function(data) {
+        Tratar_Grid(data);
+      }); // End sucess()
   } // End Load Data()
 
 
-  $scope.$watchCollection('search', function(newNames, oldNames) {
-     console.log(newNames);
-      Autor.query($scope.search);
-  });
-
-
-
+  $scope.queryData = function (query) {
+     Autor.query(query)
+      .success(function(data) {
+        Tratar_Grid(data);
+      }); // End sucess()
+  } // End query Data()
 
 
   /* Pagination */
-
   $scope.currentPage = 1;
   $scope.pageChanged = function(page) {
     $scope.loadData(page);
   };
 
+  $scope.sortDjango = function(event){
+    $scope.pru2 = event;
+  };
+
   $scope.loadData();
+  $scope.gridOptions = { 
+    data: 'myData',  
+    columnDefs:'headers',
+    enableRowSelection: false,
+    enableSorting: true,
+    enablePaging: true,
+    rowHeight: 36,
+    headerRowHeight: 60,
+    plugins: [filterBarPlugin],
+  };// End gridOptions()
+
+
+
+$scope.$watch('gridOptions.ngGrid.config.sortInfo', function () {
+      console.log($scope.gridOptions.ngGrid.config.sortInfo);
+  }, true);
 
 });
 

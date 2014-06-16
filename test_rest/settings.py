@@ -127,7 +127,7 @@ APPEND_SLASH = False
 
 
 REST_FRAMEWORK = {
-    #'PAGINATE_BY': 5,                 # Default to 10
-    #'PAGINATE_BY_PARAM': 'page_size',  # Allow client to override, using `?page_size=xxx`.
-    #'MAX_PAGINATE_BY': 13             # Maximum limit allowed when using `?page_size=xxx`.
+    'PAGINATE_BY': 5,                 # Default to 10
+    'PAGINATE_BY_PARAM': 'page_size',  # Allow client to override, using `?page_size=xxx`.
+    'MAX_PAGINATE_BY': 13             # Maximum limit allowed when using `?page_size=xxx`.
 }

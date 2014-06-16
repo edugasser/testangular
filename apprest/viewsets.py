@@ -6,7 +6,8 @@ from django.db import connection
 
 #from rest_framework.pagination import PaginationSerializer
 from django.template import RequestContext
-
+from url_filter.backend import URLDjangoFilterBackend
+from rest_framework.filters import OrderingFilter
 
 class LibroViewSet(viewsets.ModelViewSet):
 	
@@ -15,9 +16,26 @@ class LibroViewSet(viewsets.ModelViewSet):
 
 
 class AutorViewSet(viewsets.ModelViewSet):
+	'''serializer_class = AutorSerializer
+	model = Autor
+	def get_queryset(self):
+		"""
+		This view should return a list of all the purchases for
+		the user as determined by the username portion of the URL.
+		"""
+		par=self.request.QUERY_PARAMS
+		for key in par:
+			print key,par[key]
+		queryset = Autor.objects.all()
+
+		return queryset
+	'''
 	serializer_class = AutorSerializer
 	queryset = Autor.objects.all()
+	filter_backends = (URLDjangoFilterBackend,OrderingFilter)
+	filter_fields = ('nombre','apellido')
 
+	ordering_fields = '__all__'
 
 '''
 # FUNCIONA EN GRID.JS
