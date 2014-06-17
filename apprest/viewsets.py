@@ -9,6 +9,7 @@ from django.template import RequestContext
 from url_filter.backend import URLDjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 
+
 class LibroViewSet(viewsets.ModelViewSet):
 	
     serializer_class = LibroSerializer

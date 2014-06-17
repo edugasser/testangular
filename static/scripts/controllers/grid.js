@@ -1,6 +1,8 @@
 // main.js
 var app = angular.module('myApp', ['ngGrid','ngRoute','ui.bootstrap']);
 
+
+
 app.factory('Autor', function($http) {
 
     return {
@@ -10,8 +12,8 @@ app.factory('Autor', function($http) {
       },
 
       // query all the comments
-      query : function(texto) {
-        return $http.get('/autores?'+texto);
+      query : function(texto,ordering) {
+        return $http.get('/autores?'+texto+ordering);
       },
 
       // save a comment (pass in comment data)
@@ -32,8 +34,11 @@ app.factory('Autor', function($http) {
   });
 
 
+app.config(function($logProvider){
+  $logProvider.debugEnabled(true);
+});
 
-app.controller('MyCtrl', function($scope,$http,Autor) {
+app.controller('MyCtrl', function($scope,$http,Autor,$log) {
 
   function Tratar_Grid(data){
       $scope.myData = data.results;
@@ -58,7 +63,7 @@ app.controller('MyCtrl', function($scope,$http,Autor) {
          }
        } // End headers
     }
-
+    /*
   var filterBarPlugin = {
       init: function(scope, grid) {
           filterBarPlugin.scope = scope;
@@ -66,23 +71,23 @@ app.controller('MyCtrl', function($scope,$http,Autor) {
           $scope.$watch(function() {
               var searchQuery = '';
               var vacio = true;
+
               angular.forEach(filterBarPlugin.scope.columns, function(col) {
                   if (col.visible && col.filterText) {
                       var filterText = col.filterText.trim();
                       if (filterText.length % 3 === 0){
                         searchQuery+=col.field + "__contains=" + filterText+ "&";
-                      }  
-                      vacio = false;        
+                      }                        vacio = false;        
                   }
               }
               );
-              /* si han vaciado el campo,hacemos otra llamada*/
+              // si han vaciado el campo,hacemos otra llamada
               if (vacio){
                 searchQuery= ' ';
               }
              return searchQuery;
           }, function(searchQuery,vacio) {
-              /* si hay datos que buscar */
+              // si hay datos que buscar 
               if (searchQuery){
                 $scope.queryData(searchQuery);
               }
@@ -91,6 +96,43 @@ app.controller('MyCtrl', function($scope,$http,Autor) {
       scope: undefined,
       grid: undefined,
   };
+*/
+
+  var filterBarPlugin = {
+      init: function(scope, grid) {
+          filterBarPlugin.scope = scope;
+          filterBarPlugin.grid = grid;
+          $scope.memory_search=''
+          $scope.$watch(function() {
+              var searchQuery = '';
+              var vacio = true;
+
+              angular.forEach(filterBarPlugin.scope.columns, function(col) {
+                  if (col.visible && col.filterText) {
+                      var filterText = col.filterText.trim();
+                      if (filterText.length % 3 === 0){
+                        searchQuery+=col.field + "__contains=" + filterText+ "&";
+                      }                        vacio = false;        
+                  }
+              }
+              );
+              // si han vaciado el campo,hacemos otra llamada
+              if (vacio){
+                searchQuery= ' ';
+              }
+             return searchQuery;
+          }, function(searchQuery,vacio) {
+              // si hay datos que buscar 
+              if (searchQuery){
+                $scope.queryData(searchQuery);
+                $scope.memory_search = searchQuery;
+              }
+          });
+      },
+      scope: undefined,
+      grid: undefined,
+  };
+
 
   $scope.loadData = function (page) {
      Autor.get(page)
@@ -100,8 +142,8 @@ app.controller('MyCtrl', function($scope,$http,Autor) {
   } // End Load Data()
 
 
-  $scope.queryData = function (query) {
-     Autor.query(query)
+  $scope.queryData = function (query,ordering) {
+     Autor.query(query,ordering)
       .success(function(data) {
         Tratar_Grid(data);
       }); // End sucess()
@@ -114,11 +156,8 @@ app.controller('MyCtrl', function($scope,$http,Autor) {
     $scope.loadData(page);
   };
 
-  $scope.sortDjango = function(event){
-    $scope.pru2 = event;
-  };
-
   $scope.loadData();
+
   $scope.gridOptions = { 
     data: 'myData',  
     columnDefs:'headers',
@@ -132,8 +171,15 @@ app.controller('MyCtrl', function($scope,$http,Autor) {
 
 
 
-$scope.$watch('gridOptions.ngGrid.config.sortInfo', function () {
-      console.log($scope.gridOptions.ngGrid.config.sortInfo);
+  $scope.$watch('gridOptions.ngGrid.config.sortInfo', function () {
+      var obj = $scope.gridOptions.ngGrid.config.sortInfo;
+      var dir = ''
+      if(obj.directions[0]=='desc'){
+        dir='-'
+      }
+      var ordering = '&ordering='+dir+obj.fields[0]
+      $scope.queryData($scope.memory_search,ordering)
+
   }, true);
 
 });
