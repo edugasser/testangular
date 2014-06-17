@@ -31,7 +31,8 @@
         </style>
 
     </head>
-    <body ng-controller="MyCtrl">
+    <body >
+        <div ng-controller="MyCtrl">
         <div class="gridStyle" ng-grid="gridOptions">
         </div>
         <div>
@@ -40,6 +41,7 @@
             The selected page no: {{currentPage}}<br>
             {{memory_search}}
          {% endverbatim %}
+        </div>
         </div>
     </body>
 </html>

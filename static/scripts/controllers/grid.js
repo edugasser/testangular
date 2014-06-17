@@ -1,10 +1,7 @@
 // main.js
 var app = angular.module('myApp', ['ngGrid','ngRoute','ui.bootstrap']);
 
-
-
 app.factory('Autor', function($http) {
-
     return {
       // get all the comments
       get : function(page) {
@@ -13,6 +10,7 @@ app.factory('Autor', function($http) {
 
       // query all the comments
       query : function(texto,ordering) {
+        ordering = typeof ordering !== 'undefined' ? ordering : '';
         return $http.get('/autores?'+texto+ordering);
       },
 
@@ -52,10 +50,8 @@ app.controller('MyCtrl', function($scope,$http,Autor,$log) {
       // Preparamos los headers
       if ($scope.headers==null){
          $scope.headers=[]
-         $scope.search={}
          for (var key in data.results){
             for (var columna in data.results[key]){
-              $scope.search[columna]=''
               $scope.headers.push({field: columna, displayName: columna.toUpperCase(), headerCellTemplate: 'static/scripts/controllers/filterHeaderTemplate.html'});
               
             }
@@ -63,40 +59,7 @@ app.controller('MyCtrl', function($scope,$http,Autor,$log) {
          }
        } // End headers
     }
-    /*
-  var filterBarPlugin = {
-      init: function(scope, grid) {
-          filterBarPlugin.scope = scope;
-          filterBarPlugin.grid = grid;
-          $scope.$watch(function() {
-              var searchQuery = '';
-              var vacio = true;
-
-              angular.forEach(filterBarPlugin.scope.columns, function(col) {
-                  if (col.visible && col.filterText) {
-                      var filterText = col.filterText.trim();
-                      if (filterText.length % 3 === 0){
-                        searchQuery+=col.field + "__contains=" + filterText+ "&";
-                      }                        vacio = false;        
-                  }
-              }
-              );
-              // si han vaciado el campo,hacemos otra llamada
-              if (vacio){
-                searchQuery= ' ';
-              }
-             return searchQuery;
-          }, function(searchQuery,vacio) {
-              // si hay datos que buscar 
-              if (searchQuery){
-                $scope.queryData(searchQuery);
-              }
-          });
-      },
-      scope: undefined,
-      grid: undefined,
-  };
-*/
+  
 
   var filterBarPlugin = {
       init: function(scope, grid) {
@@ -106,27 +69,32 @@ app.controller('MyCtrl', function($scope,$http,Autor,$log) {
           $scope.$watch(function() {
               var searchQuery = '';
               var vacio = true;
-
               angular.forEach(filterBarPlugin.scope.columns, function(col) {
                   if (col.visible && col.filterText) {
                       var filterText = col.filterText.trim();
+                      // cada tres caracteres, realiza una busqueda
                       if (filterText.length % 3 === 0){
                         searchQuery+=col.field + "__contains=" + filterText+ "&";
-                      }                        vacio = false;        
+                      }
+                      vacio = false;        
                   }
               }
               );
-              // si han vaciado el campo,hacemos otra llamada
+              // si han vaciado todos los campos por completo,hacemos otra llamada
               if (vacio){
-                searchQuery= ' ';
+                searchQuery= '   ';// 3 espacios
               }
              return searchQuery;
-          }, function(searchQuery,vacio) {
-              // si hay datos que buscar 
-              if (searchQuery){
-                $scope.queryData(searchQuery);
-                $scope.memory_search = searchQuery;
-              }
+          }, function(searchQuery,vacio,newVal, oldVal) {
+                // esta condicion es redundante, pero es que cuando
+                // inicia la página, se lanza esta función sin pasar por el watch
+                if (searchQuery.length>=3){
+                  $scope.queryData(searchQuery);
+                  // cuando se quiera ordenar, hay que tener en cuenta los filtros
+                  // los guardamos aquí para no tener que realizar otra vez el recorrido.
+                  $scope.memory_search = searchQuery;
+                }
+        
           });
       },
       scope: undefined,
@@ -149,14 +117,24 @@ app.controller('MyCtrl', function($scope,$http,Autor,$log) {
       }); // End sucess()
   } // End query Data()
 
+  $scope.$watch('gridOptions.ngGrid.config.sortInfo', function (newVal, oldVal) {
+      if(newVal != oldVal){
+        var obj = $scope.gridOptions.ngGrid.config.sortInfo;
+        var dir = ''
+        if(obj.directions[0]=='desc'){
+          dir='-'
+        }
+        var ordering = '&ordering='+dir+obj.fields[0]
+        $scope.queryData($scope.memory_search,ordering)
+        $scope.currentPage = 1;
+      }
+  }, true);
 
   /* Pagination */
   $scope.currentPage = 1;
   $scope.pageChanged = function(page) {
     $scope.loadData(page);
   };
-
-  $scope.loadData();
 
   $scope.gridOptions = { 
     data: 'myData',  
@@ -170,61 +148,6 @@ app.controller('MyCtrl', function($scope,$http,Autor,$log) {
   };// End gridOptions()
 
 
-
-  $scope.$watch('gridOptions.ngGrid.config.sortInfo', function () {
-      var obj = $scope.gridOptions.ngGrid.config.sortInfo;
-      var dir = ''
-      if(obj.directions[0]=='desc'){
-        dir='-'
-      }
-      var ordering = '&ordering='+dir+obj.fields[0]
-      $scope.queryData($scope.memory_search,ordering)
-
-  }, true);
+  $scope.loadData(1);
 
 });
-
-/*
-  $scope.$watch('search', function(searchText, oldsearchText) {
-      console.log('aaa');
-      if (searchText !== oldsearchText) {
-        $scope.search[nombre] = "nombre:" + searchText + "; ";
-      }});
-
-*/
-/*
-$scope.$watchCollection('search', function(newNames, oldNames) {
-    console.log(newNames);
-        $scope.dataCount = newNames.length;
-      });
-*/
-
-/*
-angular.forEach($scope.search, function(object) {
-    $scope.$watch(object, function(newNames,oldNames) {
-
-        console.log(object);
-
-    })
-}, true);
-*/
-
-/*
- $scope.$watch($scope.search['id'], function(newNames,oldNames) {
-        console.log(newNames);
-    })*/
-
-/*
- $scope.onKeyPress = function ($event,campo) {
-      console.log(campo);
-      
-    };
-*/
-
-/*
-  // poniendo  ng-keyup="getValue($event,col.field)" en el template
-  $scope.getValue = function ($event,campo){
-    var texto = $scope.search[campo];
-    Autor.query($scope.search);
-  }
-*/
