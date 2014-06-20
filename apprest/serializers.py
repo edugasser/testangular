@@ -9,8 +9,9 @@ class LibroSerializer(serializers.ModelSerializer):
 
 
 class AutorSerializer(serializers.ModelSerializer):
-
+	
 	model = Autor
 	class Meta:
 		model = Autor
 		fields = ('id', 'nombre', 'apellido')
+		hola= 'hola'

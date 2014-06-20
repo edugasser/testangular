@@ -5,13 +5,18 @@ app.factory('Autor', function($http) {
     return {
       // get all the comments
       get : function(page) {
-        return $http.get('/autores',{params: {page:page}});
+        return $http.get('/dame_autores',{params: {page:page}});
       },
 
       // query all the comments
-      query : function(texto,ordering) {
+      query : function(page,texto,ordering) {
+        console.log(page);
         ordering = typeof ordering !== 'undefined' ? ordering : '';
-        return $http.get('/autores?'+texto+ordering);
+        page = typeof page !== 'undefined' ? 'page='+page.toString()+'&' : '';
+        texto = typeof texto !== 'undefined' ? texto : '';
+        if (texto=='   ')texto='';
+
+        return $http.get('/dame_autores?'+page+texto+ordering);
       },
 
       // save a comment (pass in comment data)
@@ -37,30 +42,22 @@ app.config(function($logProvider){
 });
 
 app.controller('MyCtrl', function($scope,$http,Autor,$log) {
-
+  $scope.firstWatch=true;
   function Tratar_Grid(data){
       $scope.myData = data.results;
 
       // Preparamos la paginacion
-      if ($scope.noOfPages==null){
-        var page_size = data.results.length;
-        $scope.noOfPages =  (data.count%page_size != 0) ? parseInt((data.count/page_size))+1 : (data.count/page_size);
-      }
 
-      // Preparamos los headers
+      $scope.noOfPages =  data.num_pages;
+     
+
       if ($scope.headers==null){
-         $scope.headers=[]
-         for (var key in data.results){
-            for (var columna in data.results[key]){
-              $scope.headers.push({field: columna, displayName: columna.toUpperCase(), headerCellTemplate: 'static/scripts/controllers/filterHeaderTemplate.html'});
-              
-            }
-            break;
-         }
-       } // End headers
+        $scope.headers=data.headers
+      }
+      
     }
   
-
+  
   var filterBarPlugin = {
       init: function(scope, grid) {
           filterBarPlugin.scope = scope;
@@ -71,10 +68,11 @@ app.controller('MyCtrl', function($scope,$http,Autor,$log) {
               var vacio = true;
               angular.forEach(filterBarPlugin.scope.columns, function(col) {
                   if (col.visible && col.filterText) {
-                      var filterText = col.filterText.trim();
+                    
+                      var filterText = col.filterText.value
                       // cada tres caracteres, realiza una busqueda
                       if (filterText.length % 3 === 0){
-                        searchQuery+=col.field + "__contains=" + filterText+ "&";
+                        searchQuery+=col.field + "=" + filterText+ "&";
                       }
                       vacio = false;        
                   }
@@ -88,18 +86,32 @@ app.controller('MyCtrl', function($scope,$http,Autor,$log) {
           }, function(searchQuery,vacio,newVal, oldVal) {
                 // esta condicion es redundante, pero es que cuando
                 // inicia la página, se lanza esta función sin pasar por el watch
-                if (searchQuery.length>=3){
-                  $scope.queryData(searchQuery);
+              $log.debug($scope.firstWatch,searchQuery,searchQuery.length);
+               if (!$scope.firstWatch && searchQuery.length>=3){
+                  $scope.queryData(1,searchQuery, $scope.ordering);
                   // cuando se quiera ordenar, hay que tener en cuenta los filtros
                   // los guardamos aquí para no tener que realizar otra vez el recorrido.
                   $scope.memory_search = searchQuery;
                 }
-        
+                $scope.firstWatch = false;
           });
       },
       scope: undefined,
       grid: undefined,
   };
+    $scope.selectables = {'nombre':[
+        { label: 'edu', value: 'edu'},
+        { label:'andres', value: 'andres'},
+        { label: 'walter', value: 'walter'}
+    ],'apellido':[
+        { label: 'gasser', value: 'gasser'},
+        { label:'gasser', value: 'suden'},
+        { label: 'suden', value: 'suden'}
+    ],'id':[
+        { label: 'A', value: 'edu'},
+        { label:'B', value: 2},
+        { label: 'C', value: 3}
+    ]};
 
 
   $scope.loadData = function (page) {
@@ -110,8 +122,8 @@ app.controller('MyCtrl', function($scope,$http,Autor,$log) {
   } // End Load Data()
 
 
-  $scope.queryData = function (query,ordering) {
-     Autor.query(query,ordering)
+  $scope.queryData = function (page,query,ordering) {
+     Autor.query(page,query,ordering)
       .success(function(data) {
         Tratar_Grid(data);
       }); // End sucess()
@@ -124,8 +136,9 @@ app.controller('MyCtrl', function($scope,$http,Autor,$log) {
         if(obj.directions[0]=='desc'){
           dir='-'
         }
-        var ordering = '&ordering='+dir+obj.fields[0]
-        $scope.queryData($scope.memory_search,ordering)
+        $scope.ordering = '&ordering='+dir+obj.fields[0]
+
+        $scope.queryData(1,$scope.memory_search, $scope.ordering)
         $scope.currentPage = 1;
       }
   }, true);
@@ -133,7 +146,7 @@ app.controller('MyCtrl', function($scope,$http,Autor,$log) {
   /* Pagination */
   $scope.currentPage = 1;
   $scope.pageChanged = function(page) {
-    $scope.loadData(page);
+    $scope.queryData(page,$scope.memory_search,$scope.ordering)
   };
 
   $scope.gridOptions = { 

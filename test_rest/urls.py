@@ -1,7 +1,8 @@
 from django.conf.urls import patterns, include, url
 from django.views.generic import TemplateView
 from settings import BASE_DIR,STATIC_URL
-
+from apprest.views import *
+from apprest.viewsets import * 
 from django.contrib import admin
 admin.autodiscover()
 
@@ -26,6 +27,7 @@ urlpatterns = patterns('',
     url(r'^home$', TemplateView.as_view(template_name="base.html")),
     url(r'^grid$', TemplateView.as_view(template_name="grid.html")),
     url(r'^grids$', TemplateView.as_view(template_name="grids.html")),
+    url(r'^dame_autores$', autor_list),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^static/(?P<path>.*)$','django.views.static.serve',
 	{'document_root':STATIC_URL,}),
